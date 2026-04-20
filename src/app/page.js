@@ -19,21 +19,21 @@ export default function ViewerDashboard() {
         const clsData = await clsRes.json();
         setMasterclasses(clsData);
         if (clsData.length > 0) setSelectedClassId(clsData[0]._id);
-      } catch(e) { console.error(e) }
+      } catch (e) { console.error(e) }
     }
     loadInitial();
   }, []);
 
   useEffect(() => {
     if (!selectedClassId) return;
-    
+
     async function fetchDashboard() {
       setIsLoading(true);
       try {
         const misRes = await fetch(`/api/mis?masterclass=${selectedClassId}`);
         const data = await misRes.json();
         setMisData(data);
-        
+
         if (data.length > 0) {
           const newest = new Date(Math.max(...data.map(e => new Date(e.date))));
           setTargetDateStr(newest.toISOString().split('T')[0]);
@@ -53,7 +53,7 @@ export default function ViewerDashboard() {
   const parseTime = (timeStr) => {
     if (!timeStr) return 0;
     const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) return parts[0]*3600 + parts[1]*60 + parts[2];
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     return 0;
   };
 
@@ -70,20 +70,20 @@ export default function ViewerDashboard() {
     return Math.floor(timeDiff / (1000 * 3600 * 24));
   };
 
-  const formatNum = (num, isCurrency=false) => {
+  const formatNum = (num, isCurrency = false) => {
     if (num === null || isNaN(num) || num === undefined) return '';
     const val = Number(num);
     const displayNum = val % 1 === 0 ? val : Number(val.toFixed(1));
     return isCurrency ? displayNum.toLocaleString() : displayNum;
   };
-  
+
   const formatPct = (num, den) => {
     if (!den || den === 0) return '';
     return Math.round((num / den) * 100) + '%';
   };
 
   let columns = [];
-  
+
   if (misData.length > 0 && targetDateStr) {
     const tDateObj = new Date(targetDateStr);
     const tDateStrLocal = tDateObj.toLocaleDateString('en-US');
@@ -95,10 +95,12 @@ export default function ViewerDashboard() {
 
     const filters = [
       { name: tDateStrLocal, isAvg: false, filterFunc: d => d.date.startsWith(targetDateStr) },
-      { name: 'Last 7 days', isAvg: true, filterFunc: d => {
+      {
+        name: 'Last 7 days', isAvg: true, filterFunc: d => {
           const diff = getDayDiff(tDateObj, d.date);
           return diff >= 0 && diff < 7;
-      }}
+        }
+      }
     ];
 
     const monthsSet = new Set();
@@ -106,8 +108,8 @@ export default function ViewerDashboard() {
       const dateObj = new Date(d.date);
       monthsSet.add(`${dateObj.getFullYear()}-${dateObj.getMonth()}`);
     });
-    
-    const sortedMonths = Array.from(monthsSet).sort((a,b) => {
+
+    const sortedMonths = Array.from(monthsSet).sort((a, b) => {
       const [yA, mA] = a.split('-').map(Number);
       const [yB, mB] = b.split('-').map(Number);
       if (yA !== yB) return yB - yA;
@@ -143,7 +145,7 @@ export default function ViewerDashboard() {
       const divisor = col.isAvg && uniqueDates > 0 ? uniqueDates : 1;
       const workingDays = uniqueDates;
 
-      const agentsAvailable = uniqueDates > 0 ? sumAgentsAvailable / uniqueDates : 0; 
+      const agentsAvailable = uniqueDates > 0 ? sumAgentsAvailable / uniqueDates : 0;
       const leadPushed = sumLeadPushed / divisor;
       const dialed = sumDialed / divisor;
       const reachable = sumReachable / divisor;
@@ -153,7 +155,7 @@ export default function ViewerDashboard() {
       const revenue = sumRevenue / divisor;
       const talkTimeSec = Math.round(sumTalkTimeSec / divisor);
 
-      const avgAgentDivisor = col.isAvg ? agentsAvailable : sumAgentsAvailable; 
+      const avgAgentDivisor = col.isAvg ? agentsAvailable : sumAgentsAvailable;
       const perAgentTalkTimeSec = avgAgentDivisor > 0 ? Math.round(talkTimeSec / avgAgentDivisor) : 0;
       const perAgentDialed = avgAgentDivisor > 0 ? dialed / avgAgentDivisor : 0;
       const perAgentReachable = avgAgentDivisor > 0 ? reachable / avgAgentDivisor : 0;
@@ -201,7 +203,7 @@ export default function ViewerDashboard() {
     { label: 'Reachable / Dialed', type: 'ratio', numKey: 'reachable', denKey: 'dialed' },
     { label: 'Engaged / Reachable', type: 'ratio', numKey: 'totalEngaged', denKey: 'reachable' },
     { label: 'Interested / Reachable', type: 'ratio', numKey: 'interested', denKey: 'reachable' },
-    { label: 'Interested / Engaged', type: 'ratio', numKey: 'interested', denKey: 'totalEngaged' }, 
+    { label: 'Interested / Engaged', type: 'ratio', numKey: 'interested', denKey: 'totalEngaged' },
     { label: 'Converted / Interested', type: 'ratio', numKey: 'usersConverted', denKey: 'interested' },
     { label: 'Metrices per Agent per day', type: 'header' },
     { label: 'Per Agent Talk Time Duration', key: 'perAgentTalkTimeStr', isString: true },
@@ -216,7 +218,7 @@ export default function ViewerDashboard() {
   // Process Agent Contribution Logic
   const totalContribRevenue = agentContribData.reduce((acc, c) => acc + (c.revenue || 0), 0);
   const totalContribConverted = agentContribData.reduce((acc, c) => acc + (c.usersConverted || 0), 0);
-  
+
   // Aggregate per agent
   const agentBreakdown = [];
   const agentMap = new Map();
@@ -241,32 +243,32 @@ export default function ViewerDashboard() {
     });
   });
 
-  agentBreakdown.sort((a,b) => b.revenue - a.revenue);
+  agentBreakdown.sort((a, b) => b.revenue - a.revenue);
 
   return (
     <div className="container animate-fade-in" style={{ paddingBottom: '60px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '30px' }}>
         <div>
           <h1 style={{ fontSize: '2.5rem', background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Executive MIS Report
+            ETMasterclass Dashboard
           </h1>
           <p style={{ color: '#94a3b8', fontSize: '1.1rem', marginTop: '5px' }}>Daily average and aggregate performance tracking</p>
         </div>
 
         <div style={{ display: 'flex', gap: '15px' }}>
           <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px' }}>
-            <Calendar size={18} className="text-primary"/>
-            <input 
-              type="date" 
+            <Calendar size={18} className="text-primary" />
+            <input
+              type="date"
               value={targetDateStr}
               onChange={(e) => setTargetDateStr(e.target.value)}
               style={{ background: 'transparent', border: 'none', color: 'white', outline: 'none', fontSize: '1rem', cursor: 'pointer' }}
             />
           </div>
           <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px', minWidth: '250px' }}>
-            <Filter size={18} className="text-primary"/>
-            <select 
-              value={selectedClassId} 
+            <Filter size={18} className="text-primary" />
+            <select
+              value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
               style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', outline: 'none', fontSize: '1rem', cursor: 'pointer' }}
             >
@@ -327,7 +329,7 @@ export default function ViewerDashboard() {
             <Target className="text-primary" style={{ color: '#10b981' }} size={24} />
             <h2 style={{ fontSize: '1.4rem' }}>Agent Contribution Breakdown</h2>
           </div>
-          
+
           <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
             {agentBreakdown.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>No agent contributions recorded for this masterclass yet.</div>
@@ -346,7 +348,7 @@ export default function ViewerDashboard() {
                   {agentBreakdown.map((agent, index) => (
                     <tr key={index} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: index === 0 ? 'rgba(255, 215, 0, 0.03)' : 'transparent' }}>
                       <td style={{ padding: '15px', fontWeight: index === 0 ? '700' : '400', color: index === 0 ? '#fbbf24' : 'inherit' }}>
-                         #{index + 1} {index === 0 && '👑'}
+                        #{index + 1} {index === 0 && '👑'}
                       </td>
                       <td style={{ padding: '15px', fontWeight: 500 }}>{agent.name}</td>
                       <td style={{ padding: '15px', color: '#10b981' }}>{agent.converted}</td>
