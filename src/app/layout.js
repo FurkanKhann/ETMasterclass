@@ -3,7 +3,7 @@ import { Shield } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Pragati Report Dashboard',
+  title: 'ETMasterclass Dashboard',
   description: 'AI Agent Masterclass Reporting tool',
 };
 
@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
         <header className="header">
           <Link href="/" className="brand">
             <Shield size={28} className="text-primary" style={{ color: '#3b82f6' }}/>
-            Pragati Report
+            ETMasterclass
           </Link>
           <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <Link href="/" style={{ color: '#cbd5e1', fontSize: '0.9rem', fontWeight: 500 }}>Dashboard</Link>
